@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button type="button" onclick="location.href='/'">戻る</button>
+    <h1>{{taikin}}</h1>
+    <h2>{{ result_name }}：{{ rate }}</h2>
+    {% for info in db_info %}
+    <p>{{ info.name }} | {{ info.attendance_data }} | {{ info.time_now }}</p>
+    {% endfor %}
+</body>
+</html>
