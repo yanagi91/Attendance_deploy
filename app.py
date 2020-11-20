@@ -56,13 +56,12 @@ def set_data():
     img_path = 'static/images/image.jpg'
     img.save(img_path)
     img_path = './static/images/image.jpg'
-
+    result_rate = '検出できませんでした'
     # 顔の判定
     result_name, rate = identify.start_identify_faces(img_path)
     if result_name:
         if result_name == None:
             result_name = ''
-            result_rate = '検出できませんでした'
         else:
             result_rate = rate + '%'  
     return render_template('setdata.html', result_name=result_name, rate=result_rate)
