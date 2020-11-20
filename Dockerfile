@@ -7,7 +7,7 @@ WORKDIR ${APP_HOME}
 COPY . ./
 
 # Install production dependencies.
-RUN pip install Flask google-cloud-secret-manager Pillow mysqlclient gunicorn
+RUN pip install Flask google-cloud-secret-manager==1.0.0 Pillow PyMySQL gunicorn
 RUN pip install --upgrade azure-cognitiveservices-vision-face
 
 # Run the web service on container startup.
