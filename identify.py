@@ -119,7 +119,7 @@ def start_identify_faces(image):
     if detected_faces == None:
         # 顔を検出出来なかった場合の処理
         print('noface')
-        return False, False
+        return None, 0
 
     # 顔の判定
     result_name, rate = identify_faces(input_image_data, image_face_ID, detected_faces)
