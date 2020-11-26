@@ -111,5 +111,5 @@ def face_traning(person_group_name):
 if __name__ == '__main__':
     # フォルダ名から名前グループの作成
     path = 'image'
-    person_group_name = ['yanagishima']         # os.listdir(path)
+    person_group_name = []         # リスト必須
     face_traning(person_group_name)
