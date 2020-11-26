@@ -4,9 +4,9 @@ import random
 import pymysql.cursors
 from google.cloud import secretmanager
 
-project_id = 'attendance-295307'
-secret_name = 'Attendance_app_pw'
-secret_ver = '2'
+project_id = ''
+secret_name = ''
+secret_ver = ''
 
 client = secretmanager.SecretManagerServiceClient()
 
@@ -17,18 +17,18 @@ response = client.access_secret_version(name)
 payload = response.payload.data.decode('UTF-8')
 
 db_config = {
-    'host': '35.243.101.128',
+    'host': '',
     'db': 'attendance',  # Database Name
     'user': 'root',
     'passwd': payload,
-    #'unix_socket': '/cloudsql/attendance-295307:asia-northeast1:attendance-test',
+    'unix_socket': '',
     'charset': 'utf8',
 }
-#unix_socket=db_config['unix_socket'],
+
 try:
     # 接続
     conn = pymysql.connect(host=db_config['host'], db=db_config['db'], user=db_config['user'],
-                           passwd=db_config['passwd'], charset=db_config['charset'])
+                           passwd=db_config['passwd'], unix_socket=db_config['unix_socket'], charset=db_config['charset'])
 except pymysql.Error as ex:
     print('MySQL Error: ', ex)
 
