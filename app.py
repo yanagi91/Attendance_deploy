@@ -5,8 +5,8 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-from AZURE import identify, train
-from DB import attendance_db as db
+import identify, train
+import attendance_db as db
 
 
 app = Flask(__name__)
