@@ -1,21 +1,66 @@
 import os
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, flash
+from werkzeug.utils import secure_filename
 import base64
 from PIL import Image
 from io import BytesIO
 
-from AZURE import identify
+from AZURE import identify, train
 from DB import attendance_db as db
 
 
 app = Flask(__name__)
-
+app.config['SECRET_KEY'] = os.urandom(24)
+ALLOWED_EXTENSIONS = set(['jpg']) # 拡張子の設定 ここで設定したものしか読み込まない
 
 @app.route('/')
 def index():
-    global dec_img
-    dec_img = ''
     return render_template('index.html')
+
+
+def allwed_file(filename):
+    # ファイルの拡張子の確認
+    # OKなら１、だめなら0
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/training', methods=['GET', "POST"])
+def training():
+    # 人物を学習
+    if request.method == 'POST':
+        # ファイルのチェック
+        if 'file1' not in request.files:
+            flash('ファイルがありません', 'error')
+            return redirect('/training')
+
+        i = 0
+        for i in range(len(request.files)):
+            # ファイルを取得
+            file = request.files['file{}'.format(i)]
+            if not file:
+                break
+            if file.filename == '':
+                flash('ファイルがありません', 'error')
+                return redirect('/training')
+
+            train_name = request.form['name']
+            file_path = './static/training/{}'.format(train_name)
+            if not os.path.exists(file_path):
+                os.mkdir(file_path)
+            # ファイルがあり拡張子が対応しているときの処理
+            if file and allwed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(file_path, filename)) # パスを指定し画像を保存
+                flash(filename, "success")
+            else:
+                flash('拡張子をjpgにしてください', 'error')
+        try:
+            train.face_traning([train_name])
+            flash('学習に成功しました', 'success')
+        except:
+            flash('画像を選択しなおしてください', 'error')
+        return redirect('/training')
+    return render_template('training.html')
 
 
 @app.context_processor
@@ -37,15 +82,15 @@ def dated_url_for(endpoint, **values):
 
 @app.route('/identify/<taikin>')
 def main(taikin=None):
-    global attendance_data
     # 選択した出退勤情報を取得
+    global attendance_data
     attendance_data = taikin
-    return render_template('sebcam.html')
+    return render_template('sebcam.html', taikin=attendance_data)
 
 
 @app.route('/image_ajax', methods=['POST'])
 def set_data():
-    global result_name, rate, attendance_data
+    # 画像を処理する
     enc_data  = request.form['img']
     #dec_data = base64.b64decode( enc_data )              # これではエラー  下記対応↓
     dec_data = base64.b64decode( enc_data.split(',')[1] ) # 環境依存の様(","で区切って本体をdecode)
@@ -56,20 +101,25 @@ def set_data():
     img_path = 'static/images/image.jpg'
     img.save(img_path)
     img_path = './static/images/image.jpg'
-    result_rate = '検出できませんでした'
+
     # 顔の判定
     result_name, rate = identify.start_identify_faces(img_path)
-    if result_name:
-        if result_name == None:
-            result_name = ''
-        else:
-            result_rate = rate + '%'  
-    return render_template('setdata.html', result_name=result_name, rate=result_rate)
+    if result_name == None:
+        result_name = '検出できませんでした'
+        rate = '0' 
+    return render_template('setdata.html', result_name=result_name, rate=rate)
 
 
-@app.route('/result')
-def sub():
+@app.route('/add_db/<result_name>/<rate>')
+def add_db(result_name=None, rate=0):
+    # データベースへ保存する
     db.add_attendance_db(result_name, rate, attendance_data)     # データベースの保存
+    return redirect('/result/{}/{}'.format(result_name, rate))
+
+
+@app.route('/result/<result_name>/<rate>')
+def sub(result_name=None, rate=0):
+    # データベースの情報を表示
     db_info = db.get_infomation_attendance()                     # データベースの取得
     return render_template(
         'identify.html', taikin=attendance_data, result_name=result_name, rate=rate, db_info=db_info)

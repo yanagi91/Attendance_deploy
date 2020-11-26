@@ -1,0 +1,5 @@
+Flask==1.1.2
+google-cloud-secret-manager==1.0.0
+Pillow==7.2.0
+PyMySQL==0.10.1
+gunicorn
