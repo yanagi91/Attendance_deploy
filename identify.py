@@ -17,9 +17,9 @@ from azure.cognitiveservices.vision.face.models import TrainingStatusType, Perso
 from google.cloud import secretmanager
 
 
-project_id = 'attendance-295307'
-secret_name = 'Attendance_app_pw'
-secret_ver = '1'
+project_id = ''
+secret_name = ''
+secret_ver = ''
 
 client = secretmanager.SecretManagerServiceClient()
 
