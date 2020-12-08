@@ -5,13 +5,13 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-import identify, train
-import attendance_db as db
+from AZURE import identify, train
+from DB import attendance_db as db
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-ALLOWED_EXTENSIONS = set(['jpg']) # 拡張子の設定 ここで設定したものしか読み込まない
+ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'png']) # 拡張子の設定 ここで設定したものしか読み込まない
 
 @app.route('/')
 def index():
@@ -45,16 +45,18 @@ def training():
 
             train_name = request.form['name']
             file_path = './static/training/{}'.format(train_name)
+            # フォルダがないときだけフォルダを作成
             if not os.path.exists(file_path):
                 os.mkdir(file_path)
-            # ファイルがあり拡張子が対応しているときの処理
+            # ファイルがあり拡張子が対応しているとき画像を入力した名前のフォルダに保存
             if file and allwed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(file_path, filename)) # パスを指定し画像を保存
                 flash(filename, "success")
             else:
-                flash('拡張子をjpgにしてください', 'error')
+                flash('拡張子をjpgかpngにしてください', 'error')
         try:
+            # 学習
             train.face_traning([train_name])
             flash('学習に成功しました', 'success')
         except:
@@ -83,13 +85,12 @@ def dated_url_for(endpoint, **values):
 @app.route('/identify/<taikin>')
 def main(taikin=None):
     # 選択した出退勤情報を取得
-    global attendance_data
     attendance_data = taikin
     return render_template('sebcam.html', taikin=attendance_data)
 
 
-@app.route('/image_ajax', methods=['POST'])
-def set_data():
+@app.route('/image_ajax/<attendance_data>', methods=['POST'])
+def set_data(attendance_data=None):
     # 画像を処理する
     enc_data  = request.form['img']
     #dec_data = base64.b64decode( enc_data )              # これではエラー  下記対応↓
@@ -107,20 +108,20 @@ def set_data():
     if result_name == None:
         result_name = '検出できませんでした'
         rate = '0' 
-    return render_template('setdata.html', result_name=result_name, rate=rate)
+    return render_template('setdata.html', result_name=result_name, rate=rate, taikin=attendance_data)
 
 
-@app.route('/add_db/<result_name>/<rate>')
-def add_db(result_name=None, rate=0):
+@app.route('/add_db/<result_name>/<rate>/<attendance_data>')
+def add_db(result_name=None, rate=0, attendance_data=None):
     # データベースへ保存する
-    db.add_attendance_db(result_name, rate, attendance_data)     # データベースの保存
-    return redirect('/result/{}/{}'.format(result_name, rate))
+    db.add_attendance_db(result_name, rate, attendance_data)
+    return redirect('/result/{}/{}/{}'.format(result_name, rate, attendance_data))
 
 
-@app.route('/result/<result_name>/<rate>')
-def sub(result_name=None, rate=0):
+@app.route('/result/<result_name>/<rate>/<attendance_data>')
+def sub(result_name=None, rate=0, attendance_data=None):
     # データベースの情報を表示
-    db_info = db.get_infomation_attendance()                     # データベースの取得
+    db_info = db.get_infomation_attendance()
     return render_template(
         'identify.html', taikin=attendance_data, result_name=result_name, rate=rate, db_info=db_info)
 
