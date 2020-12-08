@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button type="button" onclick="location.href='/'">戻る</button>
+    <h1>人物学習</h1>
+    <p>3以上の画像ファイルを選択してください</p>
+    <p>画像はjpegまたはpng形式のものにしてください</p>
+    <form method = post enctype = multipart/form-data>
+        <h2>name</h2>
+        <input type="text" name="name">
+        <h2>顔写真</h2>
+        {% for i in range(5) %}
+            <input type="file" name="file{{i}}"><br>
+        {% endfor %}
+        
+        <input type="submit" value="学習させる">
+
+    </form>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class=flashes>
+        <!-- message when sending -->
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+</body>
+</html>

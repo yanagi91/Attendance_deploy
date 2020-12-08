@@ -10,6 +10,7 @@
     transform: scaleX(-1);
   }
   #camera{ position: absolute; z-index: 10;}
+  #getvideo{ position:absolute;}
   #iframe{ position: relative; z-index: 20; margin: 45px 190px; border-width: 6px; border-color: red;}
   #still{ display: none;}
   </style>
@@ -19,10 +20,11 @@
 <h1>HTML5カメラ</h1>
 
 <video id="camera" width="640" height="380"></video>
+<canvas id="getvideo" width="640" height="380"></canvas>
 <canvas id="iframe" width="250" height="280"></canvas>
 <canvas id="picture" width="640" height="380"></canvas>
 <form>
-  <button type="button" id="shutter">シャッター</button>
+  <button type="button" id="shutter" value={{taikin}}>シャッター</button>
 </form>
 <!-- 顔判定の結果を表示 -->
 <div id="place_for_suggestions"></div>
@@ -32,9 +34,9 @@
 
 
 <script type="text/javascript">
-
 window.onload = () => {
   const video  = document.querySelector("#camera");
+  const getvideo = document.querySelector("#getvideo");
   const canvas = document.querySelector("#picture");
   const se     = document.querySelector('#se');
 
@@ -42,8 +44,8 @@ window.onload = () => {
   const constraints = {
     audio: false,
     video: {
-      width: 640,
-      height: 380,
+      width: { ideal : 340 },
+      height: { ideal : 680 },
       facingMode: "user"   // フロントカメラを利用する
       // facingMode: { exact: "environment" }  // リアカメラを利用する場合
     }
@@ -54,6 +56,7 @@ window.onload = () => {
    */
   navigator.mediaDevices.getUserMedia(constraints)
   .then( (stream) => {
+    console.log(video.onloadedmetadata)
     video.srcObject = stream;
     video.onloadedmetadata = (e) => {
       video.play();
@@ -62,15 +65,28 @@ window.onload = () => {
   .catch( (err) => {
     console.log(err.name + ": " + err.message);
   });
+/*   setInterval(function(){
+	 var getvideo = document.getElementById("getvideo");
+	 getvideo.getContext("2d").drawImage(video, 0, 0, getvideo.width, getvideo.height);
+  }, 1000/30); */
+  
+/*   function notify_change_size() {
+      var video = document.getElementById('camera');
+      video_layout_width  = video.clientWidth
+      video_layout_height = video.clientHeight
+  }
+
+  var videoElement = document.querySelector('video#camera');
+  //onresizeメッセージのコールバック関数を設定する
+  videoElement.onresize = notify_change_size; */
 
   /**
    * シャッターボタン
    */
    document.querySelector("#shutter").addEventListener("click", () => {
-
-
     const ctx = canvas.getContext("2d");
-
+    // 勤怠情報の取得
+    let attendance_data = document.querySelector("#shutter").value
     // 演出的な目的で一度映像を止めてSEを再生する
     video.pause();  // 映像を停止
     setTimeout( () => {
@@ -78,7 +94,16 @@ window.onload = () => {
     }, 500);
 
     // canvasに画像を貼り付ける
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    let a = 1
+    if (canvas.width < video.videoWidth){
+      a = canvas.width / video.videoWidth;
+    }
+    if (canvas.height < video.videoHeight){
+      a = canvas.height / video.videoHeight;
+    }
+    let w = video.videoWidth * a
+    let h = video.videoHeight * a
+    ctx.drawImage(video, 0, 0, w, h);
     function send_img(){
       //canvas elementを取得
       var canvas = document.getElementById('picture');
@@ -91,7 +116,7 @@ window.onload = () => {
       //ajax送信
       $.ajax({
         //画像処理サーバーに返す場合
-        url: '/image_ajax',   
+        url: '/image_ajax/' + attendance_data,
         type: 'POST',
         data: fData ,
         contentType: false,

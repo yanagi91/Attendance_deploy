@@ -1,4 +1,7 @@
 <label id="value_lable">
-    <h2>{{result_name}}|{{rate}}</h2>
-    <button type="button" onclick="location.href='/result'">OK</button>
+    <h2>{{taikin}}</h2>
+    <h2>{{result_name}}|{{rate}}%</h2>
+    {% if rate != "0" %}
+        <button type="button" onclick="location.href='/add_db/{{result_name}}/{{rate}}/{{taikin}}'">OK</button>
+    {% endif %}
 </label>
