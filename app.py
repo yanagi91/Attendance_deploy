@@ -5,9 +5,9 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-from AZURE import identify, train
-from DB import attendance_db as db
-
+import identify, train
+import attendance_db as db
+import pyocr_test as pyocr
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -125,6 +125,27 @@ def sub(result_name=None, rate=0, attendance_data=None):
     return render_template(
         'identify.html', taikin=attendance_data, result_name=result_name, rate=rate, db_info=db_info)
 
+# ocr追加
+@app.route('/menkyo_ocr')
+def main_ocr():
+    return render_template('menkyo_ocr.html')
+
+
+@app.route('/image_ocr_ajax', methods=['POST'])
+def set_ocr_data():
+    # 画像を処理する
+    enc_data  = request.form['img']
+    #dec_data = base64.b64decode( enc_data )              # これではエラー  下記対応↓
+    dec_data = base64.b64decode( enc_data.split(',')[1] ) # 環境依存の様(","で区切って本体をdecode)
+    
+    # 判定用の画像を保存
+    dec_img = BytesIO(dec_data)
+    img  = Image.open(dec_img)
+    cut_image = pyocr.cut_number(img)
+    txt = pyocr.ocr_digit(cut_image)
+    if not txt:
+        txt = 'もう一度撮影してください'
+    return txt
 
 if __name__ == '__main__':
     app.run(debug=True)
