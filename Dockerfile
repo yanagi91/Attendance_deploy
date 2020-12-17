@@ -7,6 +7,14 @@ WORKDIR ${APP_HOME}
 COPY . ./
 COPY requirements.txt /
 
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y \
+    tesseract-ocr \
+    libtesseract-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install production dependencies.
 RUN pip install -r requirements.txt 
 RUN pip install --upgrade azure-cognitiveservices-vision-face
