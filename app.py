@@ -5,8 +5,8 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-import identify, train
-import attendance_db as db
+from AZURE import identify, train
+from DB import attendance_db as db
 import pyocr_test as pyocr
 
 app = Flask(__name__)
@@ -104,7 +104,7 @@ def set_data(attendance_data=None):
     img_path = './static/images/image.jpg'
 
     # 顔の判定
-    result_name, rate = identify.start_identify_faces(img_path)
+    #result_name, rate = identify.start_identify_faces(img_path)
     if result_name == None:
         result_name = '検出できませんでした'
         rate = '0' 
@@ -125,7 +125,7 @@ def sub(result_name=None, rate=0, attendance_data=None):
     return render_template(
         'identify.html', taikin=attendance_data, result_name=result_name, rate=rate, db_info=db_info)
 
-# ocr追加
+
 @app.route('/menkyo_ocr')
 def main_ocr():
     return render_template('menkyo_ocr.html')
@@ -141,11 +141,18 @@ def set_ocr_data():
     # 判定用の画像を保存
     dec_img = BytesIO(dec_data)
     img  = Image.open(dec_img)
-    cut_image = pyocr.cut_number(img)
-    txt = pyocr.ocr_digit(cut_image)
+    img_path = 'static/images/image_ocr.jpg'
+    img.save(img_path)
+    for i in range(5):
+        cut_image = pyocr.cut_number(img, i=i*4)
+        #cut_image = Image.open(cut_image_path)
+        txt = pyocr.ocr_digit(cut_image)
+        if txt.isdecimal() and len(txt) == 12:
+            break
     if not txt:
         txt = 'もう一度撮影してください'
     return txt
+    
 
 if __name__ == '__main__':
     app.run(debug=True)

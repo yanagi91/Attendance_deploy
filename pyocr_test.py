@@ -57,11 +57,11 @@ def pic_processing(img):
     return img_rgb
 
 
-def cut_number(img):
+def cut_number(img, i=0):
     #img = cv2.imread(img)
     #img_name = 'static/images/cut_number.jpg'
     #cut_img = img[220:250, 180:340]
-    cut_img = img.crop((180, 220, 340, 250))
+    cut_img = img.crop((180+i, 220+i, 340+i, 250+i))
     #cv2.imwrite(img_name, cut_img)
     return cut_img
 
@@ -70,10 +70,15 @@ def ocr_digit(img):
     txt = tool.image_to_string(
         img,
         lang="jpn",
-        builder=pyocr.builders.DigitBuilder(tesseract_layout=6)
+        builder=pyocr.builders.WordBoxBuilder(tesseract_layout=6)
     )
-    print(txt)
-    return txt
+    #print(txt)
+    result = ''
+    for i in txt:
+        print(i.content, ':', i.confidence)
+        if i.confidence > 85:
+            result = result + i.content
+    return result
 
 
 if __name__ == '__main__':
