@@ -4,12 +4,13 @@ import sys
 import cv2
 import pyocr
 import pyocr.builders
+import dlib_cv2 as dlcv
 
 
 img = 'image.jpg'
 
 # 1.インストール済みのTesseractのパスを通す
-path_tesseract = ""           # Tesseract-OCRのパス
+path_tesseract = "C:\\Program Files\\Tesseract-OCR"           # Tesseract-OCRのパス
 if path_tesseract not in os.environ["PATH"].split(os.pathsep):
     os.environ["PATH"] += os.pathsep + path_tesseract
 
@@ -63,6 +64,20 @@ def cut_number(img, i=0):
     #cut_img = img[220:250, 180:340]
     cut_img = img.crop((180+i, 220+i, 340+i, 250+i))
     #cv2.imwrite(img_name, cut_img)
+    return cut_img
+
+
+def cut_number_2(img, rectangle_image, i=0):
+    x1, y1 = rectangle_image[0]
+    x2, y2 = rectangle_image[1]
+    if i == 0:
+        cut_img = img.crop((x1, y1, x2, y2))
+    elif i == 1:
+        cut_img = img.crop((x1*0.9, y1, x2*1.1, y2))
+    elif i == 2:
+        cut_img = img.crop((x1*0.9, y1+15, x2*1.1, y2+15))
+    elif i == 3:
+        cut_img = img.crop((x1*0.9, y1-15, x2*1.1, y2-15))
     return cut_img
 
 
