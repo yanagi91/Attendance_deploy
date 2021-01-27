@@ -63,18 +63,33 @@ function get_pict(){
     send_img()
 }
 
+// 読み取った数字をリセット
+function cleanSuggestions(a){
+  $("#place_for_suggestions").html("")
+  if (a === 1){
+    startTimer()
+  }else if(a === 2){
+    stopTimer()
+  };
+}
+
+
 // 自動撮影の処理スタートする関数
 function startTimer(){
     console.log("start")
+    let i = 0
     videoTimer = setInterval(function(){
+        i += 1;
+        console.log(i)
         if (pfs.textContent !== "少々お待ちください"){
             if (isNaN(pfs.textContent)　|| !pfs.textContent){
                 get_pict();
+                if (i === 10){ stopTimer() };
             } else {
                 stopTimer();
             }
         }
-      }, 1000/500);
+      }, 2000);
     }
 
 // 自動撮影の処理をストップする関数
